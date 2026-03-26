@@ -1,5 +1,6 @@
 package pt.ulusofona.apigateway.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
@@ -34,6 +35,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class GatewayConfig {
 
+    @Value("${services.user.url:http://localhost:8081}")
+    private String userServiceUrl;
+
+    @Value("${services.product.url:http://localhost:8082}")
+    private String productServiceUrl;
+
+    @Value("${services.order.url:http://localhost:8083}")
+    private String orderServiceUrl;
+
     /**
      * Creates and configures the RouteLocator bean for API Gateway routing.
      * 
@@ -59,11 +69,15 @@ public class GatewayConfig {
      *   <li>Note: The /api prefix is removed when forwarding</li>
      * </ul>
      * 
+     * <p>Service URLs can be overridden via environment variables:
+     * <ul>
+     *   <li>SERVICES_USER_URL (default: http://localhost:8081)</li>
+     *   <li>SERVICES_PRODUCT_URL (default: http://localhost:8082)</li>
+     *   <li>SERVICES_ORDER_URL (default: http://localhost:8083)</li>
+     * </ul>
+     * 
      * @param builder RouteLocatorBuilder for constructing routes
      * @return RouteLocator containing all configured routes
-     * @apiNote When Docker Compose is implemented, update URIs to use service names:
-     *          - http://user-service:8081 (instead of http://localhost:8081)
-     *          - http://product-service:8082 (instead of http://localhost:8082)
      */
     @Bean
     public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
@@ -72,19 +86,19 @@ public class GatewayConfig {
                 // Routes all requests matching /api/users/** to the User Service
                 .route("user-service", r -> r
                         .path("/api/users/**")
-                        .uri("http://localhost:8081"))
+                        .uri(userServiceUrl))
                 
                 // Product Service routes
                 // Routes all requests matching /api/products/** to the Product Service
                 .route("product-service", r -> r
                         .path("/api/products/**")
-                        .uri("http://localhost:8082"))
+                        .uri(productServiceUrl))
                 
                 // Order Service routes
                 // Routes all requests matching /api/orders/** to the Order Service
                 .route("order-service", r -> r
                         .path("/api/orders/**")
-                        .uri("http://localhost:8083"))
+                        .uri(orderServiceUrl))
                 
                 .build();
     }
